@@ -21,8 +21,6 @@ class ScheduleAdapter : ListAdapter<LessonEntity, ScheduleAdapter.LessonViewHold
 
     class LessonViewHolder(private val binding: ItemLessonBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(lesson: LessonEntity) {
-            val dateStr = lesson.dateStart.substringBefore("T") // Simple formatting
-            binding.textDay.text = "${lesson.dayOfWeekString}, $dateStr"
             binding.textTime.text = "${lesson.timeStart} - ${lesson.timeEnd}"
             binding.textDiscipline.text = lesson.discipline
             binding.textTeacher.text = lesson.teacher ?: ""

@@ -26,3 +26,24 @@ data class LessonDto(
     @SerialName("аудитория") val room: String? = null,
     @SerialName("группа") val group: String? = null
 )
+
+@Serializable
+data class YearsResponse(
+    val data: YearsData
+)
+
+@Serializable
+data class YearsData(
+    val years: List<String>
+)
+
+@Serializable
+data class GroupsResponse(
+    val data: List<GroupDto>
+)
+
+@Serializable
+data class GroupDto(
+    val id: Long,
+    val name: String
+)

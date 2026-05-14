@@ -1,5 +1,6 @@
 package org.domir.lessonschedule.data.repository
 
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import org.domir.lessonschedule.data.local.ScheduleDao
@@ -43,5 +44,13 @@ class ScheduleRepository(
 
     suspend fun clearCache() {
         dao.deleteAllLessons()
+    }
+
+    suspend fun getYears(): List<String> {
+        return api.getYears().data.years
+    }
+
+    suspend fun getGroups(year: String): List<org.domir.lessonschedule.data.model.GroupDto> {
+        return api.getGroups(year).data
     }
 }

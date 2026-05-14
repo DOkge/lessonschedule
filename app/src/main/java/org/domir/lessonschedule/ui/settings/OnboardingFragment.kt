@@ -29,6 +29,7 @@ class OnboardingFragment : Fragment() {
     }
 
     private var selectedGroupId: String? = null
+    private var groupsList: List<GroupDto> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,14 +55,10 @@ class OnboardingFragment : Fragment() {
 
                 launch {
                     viewModel.groups.collect { groups ->
+                        groupsList = groups
                         val groupNames = groups.map { it.name }
                         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, groupNames)
                         binding.autoCompleteGroup.setAdapter(adapter)
-
-                        binding.autoCompleteGroup.setOnItemClickListener { _, _, position, _ ->
-                            selectedGroupId = groups[position].id.toString()
-                            binding.btnStart.isEnabled = true
-                        }
                     }
                 }
             }
@@ -73,6 +70,14 @@ class OnboardingFragment : Fragment() {
             selectedGroupId = null
             binding.btnStart.isEnabled = false
             viewModel.loadGroups(selectedYear)
+        }
+
+        // When user selects a group from the filtered dropdown, find its ID by name
+        binding.autoCompleteGroup.setOnItemClickListener { parent, _, position, _ ->
+            val selectedName = parent.getItemAtPosition(position) as String
+            val group = groupsList.find { it.name == selectedName }
+            selectedGroupId = group?.id?.toString()
+            binding.btnStart.isEnabled = selectedGroupId != null
         }
 
         binding.btnStart.setOnClickListener {

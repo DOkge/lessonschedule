@@ -14,6 +14,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import org.domir.lessonschedule.ScheduleApplication
+import org.domir.lessonschedule.data.model.GroupDto
 import org.domir.lessonschedule.databinding.FragmentSettingsBinding
 import org.domir.lessonschedule.ui.MainViewModel
 
@@ -28,6 +29,7 @@ class SettingsFragment : Fragment() {
     }
 
     private var selectedGroupId: String? = null
+    private var groupsList: List<GroupDto> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,13 +59,10 @@ class SettingsFragment : Fragment() {
 
                 launch {
                     viewModel.groups.collect { groups ->
+                        groupsList = groups
                         val groupNames = groups.map { it.name }
                         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, groupNames)
                         binding.autoCompleteGroup.setAdapter(adapter)
-
-                        binding.autoCompleteGroup.setOnItemClickListener { _, _, position, _ ->
-                            selectedGroupId = groups[position].id.toString()
-                        }
                     }
                 }
             }
@@ -74,6 +73,12 @@ class SettingsFragment : Fragment() {
             binding.autoCompleteGroup.text = null
             selectedGroupId = null
             viewModel.loadGroups(selectedYear)
+        }
+
+        binding.autoCompleteGroup.setOnItemClickListener { parent, _, position, _ ->
+            val selectedName = parent.getItemAtPosition(position) as String
+            val group = groupsList.find { it.name == selectedName }
+            selectedGroupId = group?.id?.toString()
         }
 
         binding.btnSaveGroup.setOnClickListener {

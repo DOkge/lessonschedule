@@ -8,22 +8,19 @@ import androidx.recyclerview.widget.RecyclerView
 import org.domir.lessonschedule.data.model.LessonEntity
 import org.domir.lessonschedule.databinding.FragmentDayPageBinding
 
-/**
- * ViewPager2 adapter — each page shows lessons for one day.
- * We use RecyclerView.Adapter (not FragmentStateAdapter) because
- * the content is lightweight and we need fast date switching.
- */
 class DayPagerAdapter : RecyclerView.Adapter<DayPagerAdapter.DayViewHolder>() {
 
-    // List of 7 lists (Mon..Sun), each containing that day's lessons
-    private var weekLessons: List<List<LessonEntity>> = List(7) { emptyList() }
+    private var lessonsByDate: Map<String, List<LessonEntity>> = emptyMap()
 
-    fun submitWeek(lessons: List<List<LessonEntity>>) {
-        weekLessons = lessons
+    /** Set by the Fragment — maps a page position to a "yyyy-MM-dd" string */
+    var dateStringForPage: ((Int) -> String)? = null
+
+    fun submitLessons(byDate: Map<String, List<LessonEntity>>) {
+        lessonsByDate = byDate
         notifyDataSetChanged()
     }
 
-    override fun getItemCount(): Int = 7
+    override fun getItemCount(): Int = org.domir.lessonschedule.ui.MainViewModel.TOTAL_PAGES
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
         val binding = FragmentDayPageBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -31,7 +28,9 @@ class DayPagerAdapter : RecyclerView.Adapter<DayPagerAdapter.DayViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: DayViewHolder, position: Int) {
-        holder.bind(weekLessons[position])
+        val dateStr = dateStringForPage?.invoke(position) ?: return
+        val lessons = (lessonsByDate[dateStr] ?: emptyList()).sortedBy { it.timeStart }
+        holder.bind(lessons)
     }
 
     class DayViewHolder(private val binding: FragmentDayPageBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -44,13 +43,8 @@ class DayPagerAdapter : RecyclerView.Adapter<DayPagerAdapter.DayViewHolder>() {
 
         fun bind(lessons: List<LessonEntity>) {
             adapter.submitList(lessons)
-            if (lessons.isEmpty()) {
-                binding.textEmpty.visibility = View.VISIBLE
-                binding.recyclerView.visibility = View.GONE
-            } else {
-                binding.textEmpty.visibility = View.GONE
-                binding.recyclerView.visibility = View.VISIBLE
-            }
+            binding.textEmpty.visibility = if (lessons.isEmpty()) View.VISIBLE else View.GONE
+            binding.recyclerView.visibility = if (lessons.isEmpty()) View.GONE else View.VISIBLE
         }
     }
 }

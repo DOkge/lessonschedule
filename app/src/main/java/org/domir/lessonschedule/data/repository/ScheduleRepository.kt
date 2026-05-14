@@ -1,6 +1,5 @@
 package org.domir.lessonschedule.data.repository
 
-import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import org.domir.lessonschedule.data.local.ScheduleDao
@@ -17,29 +16,23 @@ class ScheduleRepository(
 
     suspend fun refreshSchedule(startDate: String) {
         val groupId = settings.groupId.first() ?: return
-        try {
-            val response = api.getSchedule(groupId, startDate)
-            val entities = response.data.rasp.map { dto ->
-                LessonEntity(
-                    id = dto.id,
-                    dateStart = dto.dateStart,
-                    timeStart = dto.timeStart,
-                    timeEnd = dto.timeEnd,
-                    dayOfWeekString = dto.dayOfWeekString,
-                    dayOfWeek = dto.dayOfWeek,
-                    discipline = dto.discipline,
-                    teacher = dto.teacher,
-                    room = dto.room,
-                    groupName = dto.group
-                )
-            }
-            dao.deleteAllLessons()
-            dao.insertLessons(entities)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            // In a real app we might throw a custom exception to handle errors in UI
-            throw e
+        val response = api.getSchedule(groupId, startDate)
+        val entities = response.data.rasp.map { dto ->
+            LessonEntity(
+                id = dto.id,
+                dateStart = dto.dateStart,
+                timeStart = dto.timeStart,
+                timeEnd = dto.timeEnd,
+                dayOfWeekString = dto.dayOfWeekString,
+                dayOfWeek = dto.dayOfWeek,
+                discipline = dto.discipline,
+                teacher = dto.teacher,
+                room = dto.room,
+                groupName = dto.group
+            )
         }
+        // Upsert — don't delete old weeks so we can scroll back
+        dao.insertLessons(entities)
     }
 
     suspend fun clearCache() {

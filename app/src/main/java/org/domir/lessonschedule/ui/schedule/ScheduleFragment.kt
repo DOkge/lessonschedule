@@ -37,8 +37,6 @@ class ScheduleFragment : Fragment() {
     }
 
     private lateinit var dayPagerAdapter: DayPagerAdapter
-    private val dayButtons = mutableListOf<View>()
-    private var suppressPageCallback = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,16 +49,16 @@ class ScheduleFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Setup ViewPager
+        // Setup ViewPager2 with infinite-like paging
         dayPagerAdapter = DayPagerAdapter()
+        dayPagerAdapter.dateStringForPage = { page -> viewModel.dateStringForPage(page) }
         binding.viewPager.adapter = dayPagerAdapter
+        binding.viewPager.setCurrentItem(MainViewModel.CENTER_PAGE, false)
 
-        // Sync ViewPager swipe → day selector
+        // ViewPager page change → update ViewModel state
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-                if (!suppressPageCallback) {
-                    viewModel.selectDay(position)
-                }
+                viewModel.onPageSelected(position)
             }
         })
 
@@ -76,8 +74,12 @@ class ScheduleFragment : Fragment() {
         }
 
         // Week navigation arrows
-        binding.btnPrevWeek.setOnClickListener { viewModel.prevWeek() }
-        binding.btnNextWeek.setOnClickListener { viewModel.nextWeek() }
+        binding.btnPrevWeek.setOnClickListener {
+            binding.viewPager.setCurrentItem(viewModel.getPrevWeekPage(), true)
+        }
+        binding.btnNextWeek.setOnClickListener {
+            binding.viewPager.setCurrentItem(viewModel.getNextWeekPage(), true)
+        }
 
         // Observe state
         viewLifecycleOwner.lifecycleScope.launch {
@@ -85,158 +87,105 @@ class ScheduleFragment : Fragment() {
 
                 // Navigation guard
                 launch {
-                    viewModel.isGroupIdLoaded
-                        .filter { it }
-                        .collect {
-                            val currentGroupId = viewModel.groupId.value
-                            if (currentGroupId.isNullOrBlank()) {
-                                findNavController().navigate(R.id.action_scheduleFragment_to_onboardingFragment)
-                            }
+                    viewModel.isGroupIdLoaded.filter { it }.collect {
+                        if (viewModel.groupId.value.isNullOrBlank()) {
+                            findNavController().navigate(R.id.action_scheduleFragment_to_onboardingFragment)
                         }
+                    }
                 }
 
-                // Week state (day buttons + header)
+                // Week state → rebuild day buttons + header
                 launch {
                     viewModel.weekState.collect { state ->
                         binding.textWeekInfo.text = state.weekLabel
                         buildDayButtons(state.days, state.selectedDayIndex)
-
-                        // Sync pager position
-                        if (binding.viewPager.currentItem != state.selectedDayIndex) {
-                            suppressPageCallback = true
-                            binding.viewPager.setCurrentItem(state.selectedDayIndex, true)
-                            suppressPageCallback = false
-                        }
                     }
                 }
 
-                // Lessons split by day
+                // Lessons by date → adapter
                 launch {
-                    viewModel.weekLessons.collect { weekLessons ->
-                        dayPagerAdapter.submitWeek(weekLessons)
+                    viewModel.lessonsByDate.collect { byDate ->
+                        dayPagerAdapter.submitLessons(byDate)
                     }
                 }
 
-                // Loading indicator
+                // Loading
                 launch {
-                    viewModel.isLoading.collect { isLoading ->
-                        binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+                    viewModel.isLoading.collect { loading ->
+                        binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
                     }
                 }
 
-                // Error text
+                // Error
                 launch {
-                    viewModel.error.collect { error ->
-                        if (error != null) {
-                            binding.errorText.visibility = View.VISIBLE
-                            binding.errorText.text = error
-                        } else {
-                            binding.errorText.visibility = View.GONE
-                        }
+                    viewModel.error.collect { err ->
+                        binding.errorText.visibility = if (err != null) View.VISIBLE else View.GONE
+                        binding.errorText.text = err ?: ""
                     }
                 }
             }
         }
     }
 
-    /**
-     * Dynamically builds 7 day-button views inside the dayButtonsContainer.
-     * The selected day gets the primary-colored rounded background.
-     */
     private fun buildDayButtons(days: List<WeekDay>, selectedIndex: Int) {
         val container = binding.dayButtonsContainer
         container.removeAllViews()
-        dayButtons.clear()
 
-        val primaryColor = resolveThemeColor(com.google.android.material.R.attr.colorPrimary)
-        val onPrimaryColor = resolveThemeColor(com.google.android.material.R.attr.colorOnPrimary)
-        val textColor = resolveThemeColor(android.R.attr.textColorPrimary)
-        val textColorSecondary = resolveThemeColor(android.R.attr.textColorSecondary)
+        val primaryColor = resolveColor(com.google.android.material.R.attr.colorPrimary)
+        val onPrimaryColor = resolveColor(com.google.android.material.R.attr.colorOnPrimary)
+        val textColor = resolveColor(android.R.attr.textColorPrimary)
+        val textSecondary = resolveColor(android.R.attr.textColorSecondary)
 
         for ((i, day) in days.withIndex()) {
-            val isSelected = i == selectedIndex
+            val selected = i == selectedIndex
 
-            // Wrapper for the day button
-            val wrapper = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                gravity = Gravity.CENTER
+            val card = MaterialCardView(requireContext()).apply {
                 val lp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
                 lp.setMargins(dpToPx(2), 0, dpToPx(2), 0)
                 layoutParams = lp
-                setPadding(0, dpToPx(6), 0, dpToPx(6))
-
-                if (isSelected) {
-                    setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
-                    background = ContextCompat.getDrawable(requireContext(), android.R.color.transparent)
-                }
-            }
-
-            // Card background for selected state
-            val card = MaterialCardView(requireContext()).apply {
-                val cardLp = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                layoutParams = cardLp
                 radius = dpToPx(12).toFloat()
                 cardElevation = 0f
                 strokeWidth = 0
-
-                if (isSelected) {
-                    setCardBackgroundColor(primaryColor)
-                } else {
-                    setCardBackgroundColor(android.graphics.Color.TRANSPARENT)
+                setCardBackgroundColor(if (selected) primaryColor else android.graphics.Color.TRANSPARENT)
+                setOnClickListener {
+                    val targetPage = viewModel.pageForDayInWeek(i)
+                    binding.viewPager.setCurrentItem(targetPage, true)
                 }
             }
 
-            val innerLayout = LinearLayout(requireContext()).apply {
+            val inner = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
                 setPadding(0, dpToPx(8), 0, dpToPx(8))
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
             }
 
-            // Day number
-            val numberView = TextView(requireContext()).apply {
+            inner.addView(TextView(requireContext()).apply {
                 text = day.dayOfMonth.toString()
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
                 setTypeface(null, Typeface.BOLD)
                 gravity = Gravity.CENTER
-                setTextColor(if (isSelected) onPrimaryColor else if (day.isToday) primaryColor else textColor)
-            }
+                setTextColor(if (selected) onPrimaryColor else if (day.isToday) primaryColor else textColor)
+            })
 
-            // Day name
-            val nameView = TextView(requireContext()).apply {
+            inner.addView(TextView(requireContext()).apply {
                 text = day.shortName
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
                 gravity = Gravity.CENTER
-                setTextColor(if (isSelected) onPrimaryColor else textColorSecondary)
-            }
+                setTextColor(if (selected) onPrimaryColor else textSecondary)
+            })
 
-            innerLayout.addView(numberView)
-            innerLayout.addView(nameView)
-            card.addView(innerLayout)
-
-            wrapper.addView(card)
-            wrapper.setOnClickListener { viewModel.selectDay(i) }
-
-            container.addView(wrapper)
-            dayButtons.add(wrapper)
+            card.addView(inner)
+            container.addView(card)
         }
     }
 
-    private fun resolveThemeColor(attr: Int): Int {
+    private fun resolveColor(attr: Int): Int {
         val tv = TypedValue()
         requireContext().theme.resolveAttribute(attr, tv, true)
         return ContextCompat.getColor(requireContext(), tv.resourceId)
     }
 
-    private fun dpToPx(dp: Int): Int {
-        return (dp * resources.displayMetrics.density).toInt()
-    }
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 
     override fun onDestroyView() {
         super.onDestroyView()

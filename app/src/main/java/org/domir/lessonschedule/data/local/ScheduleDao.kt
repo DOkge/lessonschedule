@@ -20,4 +20,7 @@ interface ScheduleDao {
 
     @Query("DELETE FROM lessons")
     suspend fun deleteAllLessons()
+
+    @Query("SELECT * FROM lessons WHERE dateStart LIKE :datePrefix || '%' ORDER BY timeStart ASC")
+    fun getLessonsByDateSync(datePrefix: String): List<LessonEntity>
 }

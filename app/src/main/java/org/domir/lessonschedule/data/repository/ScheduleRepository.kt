@@ -45,6 +45,7 @@ class ScheduleRepository(
         val endDate = calculateEndDate(startDate)
         dao.deleteLessonsByDateRange(startDate, endDate)
         dao.insertLessons(entities)
+        updateWidgets()
 
         // Schedule notifications for newly loaded lessons
         scheduleNotifications(entities)
@@ -55,6 +56,7 @@ class ScheduleRepository(
         val currentLessons = dao.getAllLessons().first()
         LessonNotificationScheduler.cancelAll(context, currentLessons)
         dao.deleteAllLessons()
+        updateWidgets()
     }
 
     suspend fun getYears(): List<String> {
@@ -76,6 +78,20 @@ class ScheduleRepository(
         val enabled = settings.notificationsEnabled.first()
         if (enabled) {
             LessonNotificationScheduler.scheduleAll(context, lessons)
+        }
+    }
+
+    private fun updateWidgets() {
+        val appWidgetManager = android.appwidget.AppWidgetManager.getInstance(context)
+        val componentName = android.content.ComponentName(context, org.domir.lessonschedule.widget.ScheduleWidgetProvider::class.java)
+        val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+        if (appWidgetIds.isNotEmpty()) {
+            appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, org.domir.lessonschedule.R.id.widgetListView)
+            val intent = android.content.Intent(context, org.domir.lessonschedule.widget.ScheduleWidgetProvider::class.java).apply {
+                action = android.appwidget.AppWidgetManager.ACTION_APPWIDGET_UPDATE
+                putExtra(android.appwidget.AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds)
+            }
+            context.sendBroadcast(intent)
         }
     }
 }

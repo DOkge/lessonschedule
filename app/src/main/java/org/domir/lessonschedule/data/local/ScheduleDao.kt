@@ -15,6 +15,9 @@ interface ScheduleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLessons(lessons: List<LessonEntity>)
 
+    @Query("DELETE FROM lessons WHERE dateStart >= :startDate AND dateStart < :endDate")
+    suspend fun deleteLessonsByDateRange(startDate: String, endDate: String)
+
     @Query("DELETE FROM lessons")
     suspend fun deleteAllLessons()
 }

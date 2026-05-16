@@ -102,7 +102,9 @@ class MainViewModel(
         }
         viewModelScope.launch {
             schedule.collect { lessons ->
-                _lessonsByDate.value = lessons.groupBy { it.dateStart.substringBefore("T") }
+                _lessonsByDate.value = lessons
+                    .distinctBy { Triple(it.dateStart, it.timeStart, it.discipline) }
+                    .groupBy { it.dateStart.substringBefore("T") }
             }
         }
     }

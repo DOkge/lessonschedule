@@ -12,7 +12,7 @@ class DayPagerAdapter : RecyclerView.Adapter<DayPagerAdapter.DayViewHolder>() {
 
     private var lessonsByDate: Map<String, List<LessonEntity>> = emptyMap()
 
-    /** Set by the Fragment — maps a page position to a "yyyy-MM-dd" string */
+
     var dateStringForPage: ((Int) -> String)? = null
 
     fun submitLessons(byDate: Map<String, List<LessonEntity>>) {

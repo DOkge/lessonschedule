@@ -22,16 +22,15 @@ class ScheduleRemoteViewsFactory(private val context: Context) : RemoteViewsServ
     private var lessons: List<LessonEntity> = emptyList()
 
     override fun onCreate() {
-        // No heavy ops here
+        // не надо
     }
 
     override fun onDataSetChanged() {
-        // Fetch data synchronously
+        // синхронное получение данных
         val db = AppDatabase.getDatabase(context)
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         val todayStr = sdf.format(Calendar.getInstance().time)
-        
-        // Fetch lessons for today and filter unique to avoid duplicates
+
         val allLessons = db.scheduleDao().getLessonsByDateSync(todayStr)
         lessons = allLessons.distinctBy { Triple(it.dateStart, it.timeStart, it.discipline) }
     }
@@ -53,8 +52,7 @@ class ScheduleRemoteViewsFactory(private val context: Context) : RemoteViewsServ
         
         val roomText = if (!lesson.room.isNullOrBlank()) "Аудитория: ${lesson.room}" else ""
         views.setTextViewText(R.id.itemRoom, roomText)
-        
-        // Fill intent for item click
+
         val fillInIntent = Intent()
         views.setOnClickFillInIntent(R.id.itemDiscipline, fillInIntent)
         

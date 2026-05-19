@@ -45,7 +45,7 @@ class MainViewModel(
         )
     }
 
-    // Reference date = today at midnight
+    //получаем сегодняшнюю дату
     private val today: Calendar = Calendar.getInstance().apply {
         set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
         set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
@@ -77,16 +77,15 @@ class MainViewModel(
     private val _groups = MutableStateFlow<List<GroupDto>>(emptyList())
     val groups = _groups.asStateFlow()
 
-    // --- Infinite day paging ---
     private var lastPage = CENTER_PAGE
     private val _weekState = MutableStateFlow(buildWeekStateForPage(CENTER_PAGE))
     val weekState = _weekState.asStateFlow()
 
-    // Lessons grouped by date string for fast lookup
+
     private val _lessonsByDate = MutableStateFlow<Map<String, List<LessonEntity>>>(emptyMap())
     val lessonsByDate = _lessonsByDate.asStateFlow()
 
-    // Track fetched week Mondays to avoid redundant API calls
+
     private val fetchedWeeks = mutableSetOf<String>()
 
     init {
@@ -109,7 +108,7 @@ class MainViewModel(
         }
     }
 
-    /** Map a ViewPager2 page index to a Calendar date */
+
     fun dateForPage(page: Int): Calendar {
         return (today.clone() as Calendar).apply {
             add(Calendar.DAY_OF_YEAR, page - CENTER_PAGE)
@@ -118,14 +117,13 @@ class MainViewModel(
 
     fun dateStringForPage(page: Int): String = SDF.format(dateForPage(page).time)
 
-    /** Called by ViewPager2 onPageSelected */
     fun onPageSelected(page: Int) {
         lastPage = page
         _weekState.value = buildWeekStateForPage(page)
         ensureWeekLoaded(dateForPage(page))
     }
 
-    /** Returns the page to navigate to when a day button is clicked */
+    /** Возвращает страницу по кнопке */
     fun pageForDayInWeek(dayIndex: Int): Int {
         val currentDayIndex = dayOfWeekIndex(dateForPage(lastPage))
         return lastPage + (dayIndex - currentDayIndex)
@@ -159,7 +157,6 @@ class MainViewModel(
 
     fun clearError() { _error.value = null }
 
-    // --- Private helpers ---
 
     private fun ensureWeekLoaded(date: Calendar) {
         val monday = getMondayOfWeek(date)

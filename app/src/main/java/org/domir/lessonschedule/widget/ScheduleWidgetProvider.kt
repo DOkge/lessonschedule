@@ -26,12 +26,12 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
         fun updateAppWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
             val views = RemoteViews(context.packageName, R.layout.widget_schedule)
 
-            // Set up title with today's date
+            // название с сегодняшней датой
             val sdf = SimpleDateFormat("EEEE, d MMMM", Locale("ru"))
             val todayStr = sdf.format(Calendar.getInstance().time).replaceFirstChar { it.uppercase() }
             views.setTextViewText(R.id.widgetTitle, "Расписание на сегодня\n$todayStr")
 
-            // Intent to launch MainActivity when title is clicked
+            // нажал - попал в приложение
             val intent = Intent(context, MainActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(
                 context, 0, intent,
@@ -39,7 +39,6 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.widgetTitle, pendingIntent)
 
-            // Set up the RemoteViewsService to act as adapter for the ListView
             val serviceIntent = Intent(context, ScheduleWidgetService::class.java)
             serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             serviceIntent.data = Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME))
@@ -47,7 +46,6 @@ class ScheduleWidgetProvider : AppWidgetProvider() {
             views.setRemoteAdapter(R.id.widgetListView, serviceIntent)
             views.setEmptyView(R.id.widgetListView, R.id.widgetEmptyView)
 
-            // Intent for item clicks
             val clickIntent = Intent(context, MainActivity::class.java)
             val clickPendingIntent = PendingIntent.getActivity(
                 context, 1, clickIntent,

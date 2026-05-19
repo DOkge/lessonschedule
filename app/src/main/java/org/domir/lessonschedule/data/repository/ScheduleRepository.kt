@@ -39,20 +39,19 @@ class ScheduleRepository(
                 groupName = dto.group
             )
         }
-        // Delete old lessons for this week, then insert fresh data
-        // This prevents duplicates when the API returns the same lesson
-        // with a different ID on subsequent requests
+
+
         val endDate = calculateEndDate(startDate)
         dao.deleteLessonsByDateRange(startDate, endDate)
         dao.insertLessons(entities)
         updateWidgets()
 
-        // Schedule notifications for newly loaded lessons
+
+            //ну тут уведы для нового
         scheduleNotifications(entities)
     }
 
     suspend fun clearCache() {
-        // Cancel existing notifications before clearing
         val currentLessons = dao.getAllLessons().first()
         LessonNotificationScheduler.cancelAll(context, currentLessons)
         dao.deleteAllLessons()

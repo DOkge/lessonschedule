@@ -12,18 +12,13 @@ import java.util.Calendar
 import java.util.Locale
 
 /**
- * Schedules exact alarms 10 minutes before each lesson.
- * All alarms are local (AlarmManager) and work without internet.
+ * уведомления
  */
 object LessonNotificationScheduler {
 
     private const val TAG = "LessonNotifScheduler"
     private const val ADVANCE_MINUTES = 10
 
-    /**
-     * Schedule notifications for a list of lessons.
-     * Only schedules alarms for future lessons (alarm time > now).
-     */
     fun scheduleAll(context: Context, lessons: List<LessonEntity>) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val now = System.currentTimeMillis()
@@ -64,7 +59,7 @@ object LessonNotificationScheduler {
                     )
                 }
             } catch (e: SecurityException) {
-                Log.w(TAG, "Cannot schedule exact alarm: ${e.message}")
+                Log.w(TAG, "Can`t schedule exact alarm: ${e.message}")
                 alarmManager.setAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP, alarmTimeMillis, pendingIntent
                 )
@@ -72,9 +67,7 @@ object LessonNotificationScheduler {
         }
     }
 
-    /**
-     * Cancels all pending alarms for the given lessons.
-     */
+
     fun cancelAll(context: Context, lessons: List<LessonEntity>) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         for (lesson in lessons) {
@@ -88,11 +81,7 @@ object LessonNotificationScheduler {
         }
     }
 
-    /**
-     * Compute the alarm trigger time: lesson start minus 10 minutes.
-     * dateStart format: "yyyy-MM-dd" or "yyyy-MM-ddTHH:mm:ss"
-     * timeStart format: "HH:mm" or "HH:mm:ss"
-     */
+
     private fun computeAlarmTime(lesson: LessonEntity): Long? {
         return try {
             val datePart = lesson.dateStart.substringBefore("T")

@@ -11,8 +11,7 @@ import org.domir.lessonschedule.data.local.AppDatabase
 import org.domir.lessonschedule.data.local.SettingsRepository
 
 /**
- * Re-schedules all lesson notifications after device reboot
- * or after the app is updated.
+ * Поднимает старые уведы, если нужно
  */
 class BootReceiver : BroadcastReceiver() {
 

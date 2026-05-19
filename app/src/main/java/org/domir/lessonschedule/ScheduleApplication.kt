@@ -25,22 +25,23 @@ class ScheduleApplication : Application() {
             settings = settingsRepository,
             context = applicationContext
         )
-        createNotificationChannel()
+//        createNotificationChannel()
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                LessonNotificationReceiver.CHANNEL_ID,
-                "Уведомления о занятиях",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Напоминание за 10 минут до начала занятия"
-                enableVibration(true)
-            }
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
-        }
-    }
+    //Инициализация уведомлений
+//    private fun createNotificationChannel() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val channel = NotificationChannel(
+//                LessonNotificationReceiver.CHANNEL_ID,
+//                "Уведомления о занятиях",
+//                NotificationManager.IMPORTANCE_HIGH
+//            ).apply {
+//                description = "Напоминание за 10 минут до начала занятия"
+//                enableVibration(true)
+//            }
+//            val manager = getSystemService(NotificationManager::class.java)
+//            manager.createNotificationChannel(channel)
+//        }
+//    }
 }
 

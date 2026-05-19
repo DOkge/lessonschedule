@@ -49,20 +49,19 @@ class ScheduleFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Setup ViewPager2 with infinite-like paging
+        // настройка ViewPager2 для бесконечности прогкрутки типа
         dayPagerAdapter = DayPagerAdapter()
         dayPagerAdapter.dateStringForPage = { page -> viewModel.dateStringForPage(page) }
         binding.viewPager.adapter = dayPagerAdapter
         binding.viewPager.setCurrentItem(MainViewModel.CENTER_PAGE, false)
 
-        // ViewPager page change → update ViewModel state
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 viewModel.onPageSelected(position)
             }
         })
 
-        // Toolbar menu
+        // меню
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_settings -> {
@@ -73,7 +72,7 @@ class ScheduleFragment : Fragment() {
             }
         }
 
-        // Week navigation arrows
+        // стрелочки
         binding.btnPrevWeek.setOnClickListener {
             binding.viewPager.setCurrentItem(viewModel.getPrevWeekPage(), true)
         }
@@ -81,11 +80,10 @@ class ScheduleFragment : Fragment() {
             binding.viewPager.setCurrentItem(viewModel.getNextWeekPage(), true)
         }
 
-        // Observe state
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
 
-                // Navigation guard
+
                 launch {
                     viewModel.isGroupIdLoaded.filter { it }.collect {
                         if (viewModel.groupId.value.isNullOrBlank()) {
@@ -94,7 +92,7 @@ class ScheduleFragment : Fragment() {
                     }
                 }
 
-                // Week state → rebuild day buttons + header
+                // кнопки дней снизу
                 launch {
                     viewModel.weekState.collect { state ->
                         binding.textWeekInfo.text = state.weekLabel
@@ -102,21 +100,21 @@ class ScheduleFragment : Fragment() {
                     }
                 }
 
-                // Lessons by date → adapter
+                //
                 launch {
                     viewModel.lessonsByDate.collect { byDate ->
                         dayPagerAdapter.submitLessons(byDate)
                     }
                 }
 
-                // Loading
+                // загрущка
                 launch {
                     viewModel.isLoading.collect { loading ->
                         binding.progressBar.visibility = if (loading) View.VISIBLE else View.GONE
                     }
                 }
 
-                // Error
+                // ошибка
                 launch {
                     viewModel.error.collect { err ->
                         binding.errorText.visibility = if (err != null) View.VISIBLE else View.GONE

@@ -10,9 +10,9 @@
     <ImageView
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@android:drawable/ic_menu_today"
         android:layout_marginBottom="24dp"
-        android:contentDescription="Логотип" />
+        android:contentDescription="Логотип"
+        android:src="@drawable/event_note_24px" />
 
     <TextView
         android:layout_width="match_parent"

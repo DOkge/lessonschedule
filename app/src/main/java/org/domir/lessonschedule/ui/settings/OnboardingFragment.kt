@@ -11,6 +11,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.domir.lessonschedule.R
 import org.domir.lessonschedule.ScheduleApplication
@@ -69,7 +70,14 @@ class OnboardingFragment : Fragment() {
             binding.autoCompleteGroup.text = null
             selectedGroupId = null
             binding.btnStart.isEnabled = false
+            binding.groupTextInputLayout.isEnabled = false
+            
             viewModel.loadGroups(selectedYear)
+
+            viewLifecycleOwner.lifecycleScope.launch {
+                delay(1000)
+                binding.groupTextInputLayout.isEnabled = true
+            }
         }
 
         // When user selects a group from the filtered dropdown, find its ID by name

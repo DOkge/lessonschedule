@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import androidx.core.content.ContextCompat
+import org.domir.lessonschedule.R
 import org.domir.lessonschedule.data.model.LessonEntity
 import org.domir.lessonschedule.databinding.ItemLessonBinding
 
@@ -25,6 +27,15 @@ class ScheduleAdapter : ListAdapter<LessonEntity, ScheduleAdapter.LessonViewHold
             binding.textDiscipline.text = lesson.discipline
             binding.textTeacher.text = lesson.teacher ?: ""
             binding.textRoom.text = lesson.room?.let { "Ауд: $it" } ?: ""
+
+            val lower = lesson.discipline.lowercase()
+            val colorRes = when {
+                "лаб" in lower -> R.color.lesson_bg_lab
+                "практ" in lower || "пр." in lower || "(пр)" in lower || lower.startsWith("пр ") || " пр " in lower -> R.color.lesson_bg_practice
+                "лекц" in lower || "лек." in lower || "(лек)" in lower || lower.startsWith("лек ") || " лек " in lower -> R.color.lesson_bg_lecture
+                else -> R.color.lesson_bg_default
+            }
+            binding.root.setCardBackgroundColor(ContextCompat.getColor(binding.root.context, colorRes))
         }
     }
 

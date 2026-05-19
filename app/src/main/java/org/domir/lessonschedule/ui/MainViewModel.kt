@@ -81,10 +81,8 @@ class MainViewModel(
     private val _weekState = MutableStateFlow(buildWeekStateForPage(CENTER_PAGE))
     val weekState = _weekState.asStateFlow()
 
-
     private val _lessonsByDate = MutableStateFlow<Map<String, List<LessonEntity>>>(emptyMap())
     val lessonsByDate = _lessonsByDate.asStateFlow()
-
 
     private val fetchedWeeks = mutableSetOf<String>()
 

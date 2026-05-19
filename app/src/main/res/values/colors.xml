@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="lesson_bg_lecture">#E8DEF8</color>
+    <color name="lesson_bg_practice">#F1DEF8</color>
+    <color name="lesson_bg_lab">#DEE6F8</color>
+    <color name="lesson_bg_default">#E8DEF8</color>
 </resources>

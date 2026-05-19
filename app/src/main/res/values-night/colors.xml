@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="lesson_bg_lecture">#1C1B1F</color>
+    <color name="lesson_bg_practice">#1F1B22</color>
+    <color name="lesson_bg_lab">#1B1B21</color>
+    <color name="lesson_bg_default">#1C1B1F</color>
+</resources>

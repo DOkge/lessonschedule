@@ -60,7 +60,7 @@ class LessonNotificationReceiver : BroadcastReceiver() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Уведомления о занятиях",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Напоминание за 10 минут до начала занятия"
                 enableVibration(true)

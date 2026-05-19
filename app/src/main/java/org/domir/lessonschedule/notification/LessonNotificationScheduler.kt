@@ -25,7 +25,7 @@ object LessonNotificationScheduler {
 
         for (lesson in lessons) {
             val alarmTimeMillis = computeAlarmTime(lesson) ?: continue
-            if (alarmTimeMillis <= now) continue // skip past lessons
+            if (alarmTimeMillis <= now) continue // пропуск прошлых занятй
 
             val requestCode = lesson.id.toInt()
 
@@ -48,7 +48,7 @@ object LessonNotificationScheduler {
                             AlarmManager.RTC_WAKEUP, alarmTimeMillis, pendingIntent
                         )
                     } else {
-                        // Fallback to inexact alarm
+
                         alarmManager.setAndAllowWhileIdle(
                             AlarmManager.RTC_WAKEUP, alarmTimeMillis, pendingIntent
                         )
